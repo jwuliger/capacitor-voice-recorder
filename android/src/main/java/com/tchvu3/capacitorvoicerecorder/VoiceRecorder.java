@@ -98,9 +98,9 @@ public class VoiceRecorder extends Plugin {
             mediaRecorder.stopRecording();
             File recordedFile = mediaRecorder.getOutputFile();
             RecordData recordData = new RecordData(
-                    readRecordedFileAsBase64(recordedFile),
-                    getMsDurationOfAudioFile(recordedFile.getAbsolutePath()),
-                    "audio/aac"
+                readRecordedFileAsBase64(recordedFile),
+                getMsDurationOfAudioFile(recordedFile.getAbsolutePath()),
+                "audio/m4a"  // Updated MIME type for M4A
             );
             if (recordData.getRecordDataBase64() == null || recordData.getMsDuration() < 0) {
                 call.reject(Messages.EMPTY_RECORDING);
