@@ -22,17 +22,17 @@ public class CustomMediaRecorder {
     private void generateMediaRecorder() throws IOException {
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); // Changed to MPEG_4 for M4A
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC); // AAC encoder for M4A
-        mediaRecorder.setAudioEncodingBitRate(128000); // 128 kbps
-        mediaRecorder.setAudioSamplingRate(44100); // 44.1 kHz
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setAudioEncodingBitRate(96000);
+        mediaRecorder.setAudioSamplingRate(44100);
         setRecorderOutputFile();
         mediaRecorder.prepare();
     }
 
     private void setRecorderOutputFile() throws IOException {
         File outputDir = context.getCacheDir();
-        outputFile = File.createTempFile("voice_record_temp", ".m4a", outputDir); // Changed extension to .m4a
+        outputFile = File.createTempFile("voice_record_temp", ".aac", outputDir);
         outputFile.deleteOnExit();
         mediaRecorder.setOutputFile(outputFile.getAbsolutePath());
     }
@@ -106,4 +106,5 @@ public class CustomMediaRecorder {
                 tempMediaRecorder.deleteOutputFile();
         }
     }
+
 }
