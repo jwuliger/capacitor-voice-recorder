@@ -1,82 +1,128 @@
-import {VoiceRecorder} from 'capacitor-voice-recorder';
+import { VoiceRecorder } from 'capacitor-voice-recorder';
 
-updateRecordCapabilityLabel()
-updatePermissionStatusLabel()
-updateOngoingRecordingStatus()
+let lastRecording = null;
+
+updateRecordCapabilityLabel();
+updatePermissionStatusLabel();
+updateOngoingRecordingStatus();
 
 document.querySelector('#request-for-permission').addEventListener('click', () => {
-    VoiceRecorder.requestAudioRecordingPermission().then(() => updatePermissionStatusLabel())
-})
+  VoiceRecorder.requestAudioRecordingPermission().then(() => updatePermissionStatusLabel());
+});
 
 document.querySelector('#start-recording').addEventListener('click', () => {
-    VoiceRecorder.startRecording()
-        .then(result => onPromiseResolved(result, "start"))
-        .catch(error => onPromiseThrown(error))
-})
+  VoiceRecorder.startRecording()
+    .then((result) => onPromiseResolved(result, 'start'))
+    .catch((error) => onPromiseThrown(error));
+});
 
 document.querySelector('#end-recording').addEventListener('click', () => {
-    VoiceRecorder.stopRecording()
-        .then(result => console.log(result.value))
-        .catch(error => onPromiseThrown(error))
-})
+  VoiceRecorder.stopRecording()
+    .then((result) => {
+      console.log(result.value);
+      lastRecording = result.value;
+      displayAudioPlayer(result.value);
+    })
+    .catch((error) => onPromiseThrown(error));
+});
 
 document.querySelector('#pause-recording').addEventListener('click', () => {
-    VoiceRecorder.pauseRecording()
-        .then(result => onPromiseResolved(result, "pause"))
-        .catch(error => onPromiseThrown(error))
-})
+  VoiceRecorder.pauseRecording()
+    .then((result) => onPromiseResolved(result, 'pause'))
+    .catch((error) => onPromiseThrown(error));
+});
 
 document.querySelector('#resume-recording').addEventListener('click', () => {
-    VoiceRecorder.resumeRecording()
-        .then(result => onPromiseResolved(result, "resume"))
-        .catch(error => onPromiseThrown(error))
-})
+  VoiceRecorder.resumeRecording()
+    .then((result) => onPromiseResolved(result, 'resume'))
+    .catch((error) => onPromiseThrown(error));
+});
+
+document.querySelector('#download-recording').addEventListener('click', () => {
+  if (lastRecording) {
+    downloadRecording(lastRecording);
+  }
+});
 
 function onPromiseResolved(result, operation) {
-    if (!result.value) {
-        console.error(`Failed to ${operation} recording`)
-    }
-    updateOngoingRecordingStatus()
+  if (!result.value) {
+    console.error(`Failed to ${operation} recording`);
+  }
+  updateOngoingRecordingStatus();
 }
 
 function onPromiseThrown(error) {
-    console.error(error)
-    updateOngoingRecordingStatus()
+  console.error(error);
+  updateOngoingRecordingStatus();
 }
 
 function updatePermissionStatusLabel() {
-    VoiceRecorder.hasAudioRecordingPermission().then(result => {
-        const permissionStatusLabel = document.querySelector('#permission-status');
-        if (result.value) {
-            permissionStatusLabel.textContent = 'Granted'
-        } else {
-            permissionStatusLabel.textContent = 'Not Granted'
-        }
-    });
+  VoiceRecorder.hasAudioRecordingPermission().then((result) => {
+    const permissionStatusLabel = document.querySelector('#permission-status');
+    if (result.value) {
+      permissionStatusLabel.textContent = 'Granted';
+    } else {
+      permissionStatusLabel.textContent = 'Not Granted';
+    }
+  });
 }
 
 function updateRecordCapabilityLabel() {
-    VoiceRecorder.canDeviceVoiceRecord().then(result => {
-        const capabilityStatusLabel = document.querySelector('#record-capability-status');
-        if (result.value) {
-            capabilityStatusLabel.textContent = 'Can'
-        } else {
-            capabilityStatusLabel.textContent = 'Cannot'
-        }
-    });
+  VoiceRecorder.canDeviceVoiceRecord().then((result) => {
+    const capabilityStatusLabel = document.querySelector('#record-capability-status');
+    if (result.value) {
+      capabilityStatusLabel.textContent = 'Can';
+    } else {
+      capabilityStatusLabel.textContent = 'Cannot';
+    }
+  });
 }
 
 function updateOngoingRecordingStatus() {
-    VoiceRecorder.getCurrentStatus().then(result => {
-        const capabilityStatusLabel = document.querySelector('#ongoing-recording-status');
-        if (result.status === 'NONE') {
-            capabilityStatusLabel.textContent = 'None'
-        } else if (result.status === 'RECORDING') {
-            capabilityStatusLabel.textContent = 'Recording...'
-        } else if (result.status === 'PAUSED') {
-            capabilityStatusLabel.textContent = 'Paused'
-        } else {
-            capabilityStatusLabel.textContent = 'Unknown'
-        }
-    });
+  VoiceRecorder.getCurrentStatus().then((result) => {
+    const capabilityStatusLabel = document.querySelector('#ongoing-recording-status');
+    if (result.status === 'NONE') {
+      capabilityStatusLabel.textContent = 'None';
+    } else if (result.status === 'RECORDING') {
+      capabilityStatusLabel.textContent = 'Recording...';
+    } else if (result.status === 'PAUSED') {
+      capabilityStatusLabel.textContent = 'Paused';
+    } else {
+      capabilityStatusLabel.textContent = 'Unknown';
+    }
+  });
+}
+
+function displayAudioPlayer(recordingData) {
+  const audioPlayer = document.getElementById('audio-player');
+  const audioPlayerContainer = document.getElementById('audio-player-container');
+
+  // Create a Blob from the base64 data
+  const blob = base64ToBlob(recordingData.recordDataBase64, recordingData.mimeType);
+  const audioUrl = URL.createObjectURL(blob);
+
+  audioPlayer.src = audioUrl;
+  audioPlayerContainer.style.display = 'block';
+}
+
+function downloadRecording(recordingData) {
+  const blob = base64ToBlob(recordingData.recordDataBase64, recordingData.mimeType);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = 'recording.m4a';
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function base64ToBlob(base64, mimeType) {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: mimeType });
 }

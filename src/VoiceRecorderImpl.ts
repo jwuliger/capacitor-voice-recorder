@@ -15,7 +15,7 @@ import {
 } from './predefined-web-responses';
 
 // these mime types will be checked one by one in order until one of them is found to be supported by the current browser
-const possibleMimeTypes = ['audio/aac', 'audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus'];
+const possibleMimeTypes = ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
 const neverResolvingPromise = (): Promise<any> => new Promise(() => undefined);
 
 export class VoiceRecorderImpl {
